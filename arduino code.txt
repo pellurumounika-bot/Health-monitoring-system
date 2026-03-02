@@ -1,0 +1,68 @@
+
+
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+// Pulse sensor
+const int pulsePin = A0;
+int signal;
+int threshold = 550;
+
+unsigned long lastBeatTime = 0;
+int bpm = 0;
+
+// Simulated Blood Pressure
+int systolic = 120;
+int diastolic = 80;
+
+void setup() {
+  Serial.begin(9600);
+  lcd.init();
+  lcd.backlight();
+
+  lcd.setCursor(0, 0);
+  lcd.print("Health Monitor");
+  delay(2000);
+  lcd.clear();
+}
+
+void loop() {
+
+  // Read pulse sensor
+  signal = analogRead(pulsePin);
+
+  if (signal > threshold) {
+    if (millis() - lastBeatTime > 500) {
+      bpm = 60000 / (millis() - lastBeatTime);
+      lastBeatTime = millis();
+    }
+  }
+
+  // Display on LCD
+  lcd.setCursor(0, 0);
+  lcd.print("HR: ");
+  lcd.print(bpm);
+  lcd.print(" BPM   ");
+
+  lcd.setCursor(0, 1);
+  lcd.print("BP: ");
+  lcd.print(systolic);
+  lcd.print("/");
+  lcd.print(diastolic);
+  lcd.print(" mmHg");
+
+  // Send to Serial Monitor
+  Serial.print("Heart Rate: ");
+  Serial.print(bpm);
+  Serial.println(" BPM");
+
+  Serial.print("Blood Pressure: ");
+  Serial.print(systolic);
+  Serial.print("/");
+  Serial.print(diastolic);
+  Serial.println(" mmHg");
+
+  delay(1000);
+}
